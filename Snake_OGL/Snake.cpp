@@ -1,7 +1,7 @@
-#include "Universal.h"
+#include "Snake.h"
 
 
-snake::snake()
+Snake::Snake() //float _step)// , int _width, int _height)
 {
 	start = new block;
 	start->xcoord = 0;
@@ -10,10 +10,15 @@ snake::snake()
 	start->ypast = 0;
 	start->next = NULL;
 	length = 0;
+
+
 }
 
+Snake::~Snake()
+{
+}
 
-bool snake::SUpdateHead(float x, float y)
+bool Snake::SUpdateHead(float x, float y)
 {
 
 	start->xpast = start->xcoord;
@@ -24,8 +29,9 @@ bool snake::SUpdateHead(float x, float y)
 
 }
 
-bool snake::SUpdateTail(int order)
+bool Snake::SUpdateTail(int order)
 {
+	//TODO 2020 consider not updating the entire tail, rather only the end block, since it's the only one that -visually- change place.
 	//TODO add safeguard against passing something less than 1 or greater than length to this method
 	block * traverser = start;
 	block * traverser2;
@@ -48,7 +54,7 @@ bool snake::SUpdateTail(int order)
 	return false;
 }
 
-block snake::SGetBlock(int order)
+block Snake::SGetBlock(int order)
 {
 	block result;
 	block * traverser = start;
@@ -71,7 +77,7 @@ block snake::SGetBlock(int order)
 	return result;
 }
 
-bool snake::SAddBlock()
+bool Snake::SAddBlock()
 {
 	block * existingblock = start;
 	block * newblock;
@@ -103,12 +109,12 @@ bool snake::SAddBlock()
 	return false;
 }
 
-int snake::SGetLength()
+int Snake::SGetLength()
 {
 	return length;
 }
 
-bool snake::SCheckIntersection(float x, float y)
+bool Snake::SCheckIntersection(float x, float y)
 {
 	if (length < 2) //without this (or another check somewhere else) the program will infinite loop 
 					//I have a vague idea why, but not an exact one, yet! :|
@@ -117,7 +123,8 @@ bool snake::SCheckIntersection(float x, float y)
 	}
 	for (int i = 0; i <= length; i++)
 	{
-		if (abs(Snake.SGetBlock(i).xcoord - x) < 0.1*step && abs(Snake.SGetBlock(i).ycoord - y) < 0.1*step) 
+		//if (abs(Snake.SGetBlock(i).xcoord - x) < 0.1*step && abs(Snake.SGetBlock(i).ycoord - y) < 0.1*step) 
+		if (abs(SGetBlock(i).xcoord - x) < 0.1*g.step && abs(SGetBlock(i).ycoord - y) < 0.1*g.step)
 			//TODO there is a potential error here (And in FTCollision) in case ycoord and y exist with different signs.
 			//because of float accuracy. e.g, at ~0.0 cord, y gets -0.00001, and ycoord 0.00001.
 			//only way to solve that is abs() each one, then abs() the difference. 
@@ -129,14 +136,14 @@ bool snake::SCheckIntersection(float x, float y)
 	return false;
 }
 
-bool snake::SCheckSelfCollision()
+bool Snake::SCheckSelfCollision()
 {
-	float x = Snake.SGetBlock(0).xcoord;
-	float y = Snake.SGetBlock(0).ycoord;
+	float x = SGetBlock(0).xcoord;
+	float y = SGetBlock(0).ycoord;
 
 	for (int i = 3; i <= length; i++)
 	{
-		if (abs(Snake.SGetBlock(i).xcoord - x) < 0.1*step && abs(Snake.SGetBlock(i).ycoord - y) < 0.1*step)
+		if (abs(SGetBlock(i).xcoord - x) < 0.1*g.step && abs(SGetBlock(i).ycoord - y) < 0.1*g.step)
 		{
 			return true;
 		}
@@ -144,7 +151,7 @@ bool snake::SCheckSelfCollision()
 	return false;
 }
 
-bool snake::SCheckWallCollision()
+bool Snake::SCheckWallCollision()
 {
 	float x = (float(g.width) /100.0) - 0.19; //temp value
 	float y = (float(g.height) /100.0) - 0.19; //temp value
@@ -152,10 +159,10 @@ bool snake::SCheckWallCollision()
 
 	//if (abs(Snake.SGetBlock(0).xcoord) - x < 0.2*step || abs(Snake.SGetBlock(0).ycoord) - y < 0.2*step)
 	if (
-		Snake.SGetBlock(0).xcoord > x ||
-		Snake.SGetBlock(0).ycoord > y ||
-		Snake.SGetBlock(0).xcoord < -x -step ||
-		Snake.SGetBlock(0).ycoord < -y -step 
+		SGetBlock(0).xcoord > x ||
+		SGetBlock(0).ycoord > y ||
+		SGetBlock(0).xcoord < -x -g.step ||
+		SGetBlock(0).ycoord < -y -g.step 
 		)
 	{
 		return true;
@@ -164,7 +171,7 @@ bool snake::SCheckWallCollision()
 	return false;
 }
 
-bool snake::SReset()
+bool Snake::SReset()
 {
 
 	block * next = start;
@@ -190,3 +197,4 @@ bool snake::SReset()
 	SAddBlock();
 	return true;
 }
+
