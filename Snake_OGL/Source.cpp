@@ -92,7 +92,7 @@ int CALLBACK WinMain(HINSTANCE MainInstance, HINSTANCE PreviousMainInstance, LPS
 	AdjustWindowRect(&WindowRect, WS_OVERLAPPEDWINDOW, false);
 
 	g.hwnd = CreateWindow(L"OGL Window Class", _T("Snake (Deprecated-OpenGL)"),
-		WS_OVERLAPPEDWINDOW,
+		WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU ,
 		WindowRect.left, WindowRect.top,
 		WindowRect.right - WindowRect.left, 50+WindowRect.bottom - WindowRect.top,
 		NULL, NULL, g.hInstance, NULL);
@@ -132,6 +132,7 @@ int CALLBACK WinMain(HINSTANCE MainInstance, HINSTANCE PreviousMainInstance, LPS
 	g.hglrc = wglCreateContext(g.hdc);
 	wglMakeCurrent(g.hdc, g.hglrc);
 #pragma endregion
+
 
 	while (1)
 	{

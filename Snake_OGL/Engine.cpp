@@ -3,6 +3,8 @@
 Engine::Engine()
 {
 	snake = new Snake();
+	time = new GameTime();
+	gameSpeed = 70.0f;
 }
 
 Engine::~Engine()
@@ -46,66 +48,60 @@ void Engine::DrawFrame()
 
 void Engine::UpdateGame()
 {
-	DrawFrame(); //background and borders
-			//TODO research a way to output score in the whitespace above
-
-
-
-	UpdateBlock(xta, yta);
-
-	//TODO, if this doesn't work well after chaning FRandom ->IRandom, try making the check in ratios xcoord/xta < a*step
-	if (CheckCollision())
+	if (time->TimeSinceLastFrame() >= gameSpeed)
+	//if (time->IsNewPhysicsCycle())
+	//if (time->TimeSinceLastFrame() >= FrameTime)
 	{
-		snake->SAddBlock();
-		growth_flag = true;
-		Target();
-	}
+		DrawFrame(); //background and borders
+				//TODO research a way to output score in the whitespace above
 
-	if (snake->SCheckSelfCollision() || snake->SCheckWallCollision())
-	{
-		//game end here;
-		//TODO check a method of posting custom message using PostMessage()
-		//add appropriate game end handling in WinMain
+		UpdateBlock(xta, yta);
 
-		PostMessage(g.hwnd, WM_USER, WM_END_GAME, 0);
-
-		//test
-		//u = 0;
-		//v = 0;
-		//MessageBox(0, _T("GAME OVER"), _T("GAME OVER"), 0);
-		//end test
-	}
-
-	for (int i = 0; i <= snake->SGetLength(); i++)
-	{
-		if (i == snake->SGetLength() && growth_flag)
+		if (CheckCollision())
 		{
-			growth_flag = false;
-			break;
+			snake->SAddBlock();
+			growth_flag = true;
+			Target();
 		}
 
-		if (i == 0)
+		if (snake->SCheckSelfCollision() || snake->SCheckWallCollision())
 		{
-			float xt = snake->SGetBlock(i).xcoord + u;
-			float yt = snake->SGetBlock(i).ycoord + v;
-			snake->SUpdateHead(xt, yt);
-			UpdateHead(xt, yt);
+			PostMessage(g.hwnd, WM_USER, WM_END_GAME, 0);
 		}
-		else
+		
+		for (int i = 0; i <= snake->SGetLength(); i++)
 		{
-			snake->SUpdateTail(i);
-			float xt = snake->SGetBlock(i).xcoord;
-			float yt = snake->SGetBlock(i).ycoord;
-			UpdateBlock(xt, yt);
+			if (i == snake->SGetLength() && growth_flag)
+			{
+				growth_flag = false;
+				break;
+			}
+
+			if (i == 0)
+			{
+
+				float xt = snake->SGetBlock(i).xcoord + u;
+				float yt = snake->SGetBlock(i).ycoord + v;
+				
+				snake->SUpdateHead(xt, yt);
+				UpdateHead(xt, yt);
+			}
+			else
+			{
+				snake->SUpdateTail(i);
+				float xt = snake->SGetBlock(i).xcoord;
+				float yt = snake->SGetBlock(i).ycoord;
+				UpdateBlock(xt, yt);
+			}
 		}
+
+
+		UpdateScore(); //test
+		SwapBuffers(g.hdc);
+
+		time->MarkEndOfFrame();
 	}
-
-
-	UpdateScore(); //test
-	SwapBuffers(g.hdc);
-
-
-	sleep(); //TODO replace sleep with chrono implementation
+	
 }
 
 void Engine::ResetGame()
@@ -120,16 +116,21 @@ void Engine::SetDirection(int vertical, int horizontal)
 	if (!isGameRunning)
 		return;
 
-	u = horizontal * g.step;
-	v = vertical * g.step;
+	if (u * horizontal >= 0.0f)
+		u = horizontal * g.step;
+	if (v * vertical >= 0.0f)
+		v = vertical * g.step;
 }
 
 void Engine::IncrementSpeed(int increment) //2020 negative value mean decrements
 {
-	if (naptime + increment <= MAX_NAPTIME && naptime + increment >= MIN_NAPTIME) //2020 A two-in-one test
-	{
-		naptime += increment;
-	}
+	//if (naptime + increment <= MAX_NAPTIME && naptime + increment >= MIN_NAPTIME) //2020 A two-in-one test
+	//{
+	//	naptime += increment;
+	//}
+
+	gameSpeed += increment * 5.0f;
+
 }
 
 void Engine::UpdateBlock(float xb, float yb)
@@ -337,11 +338,6 @@ void Engine::EndAnimation()
 		Sleep(500);
 		SwapBuffers(g.hdc);
 	}
-}
-
-void Engine::sleep()
-{
-	Sleep(naptime);
 }
 
 int Engine::IRandom(int lower, int upper)
